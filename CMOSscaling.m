@@ -1,0 +1,73 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Beyond-CMOS devices
+% benchmarking of area, speed, and energy
+% Intel approach 2011
+% Dmitri Nikonov and Ian Young
+% all in SI units, m, s, J
+%   Title:      CMOSscaling.m
+%   Author:     Dmitri E Nikonov
+%   Date:       04/08/2015
+%   (C) Dmitri E. Nikonov 2015
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+cop.ver = 'scaling';
+% nomenclature
+aey = [
+    %'CMOS HP '; ...
+    %'CMOS LV '; ...
+    %'CMOS LP ';
+    '350nm   '; ...
+    '250nm   '; ...
+    '180nm   '; ...
+    '130nm   '; ...
+    'i90nm   '; ...
+    'i65nm   '; ...
+    'i45nm   '; ...
+    'i32nm   '; ...
+    'i22nm   '; ...
+    'i14nm   '; ...
+    %'r2011   '; ...
+    %'r2013   '; ...
+    %'r2015   '; ...
+    %'r2017   '; ...
+    %'r2019   '; ...
+    %'r2021   '
+    ];
+caey = cellstr(aey);    %cell array of names
+saey = cell2struct(caey,'name',2);  % cell array to structure
+ndev = size(aey,1);
+bey(1:ndev,1) = struct(...
+    'aint',0,'tint',0,'Eint',0,'aic',0,'tic',0,'Eic',0,...              % intrinsic device / short interconnect
+    'ainv4',0,'tinv4',0,'Einv4',0,'anan',0,'tnan',0,'Enan',0,...        % FO4 inverter / NAND2
+    'a1',0,'t1',0,'E1',0,'aadd',0,'tadd',0,'Eadd',0,...                 % 1-bit adder / 32-bit adder
+    'ainv1',0,'tinv1',0,'Einv1',0,'axor',0,'txor',0,'Exor',0,...        % FO1 inverter / XOR
+    'anan3',0,'tnan3',0,'Enan3',0,'anan4',0,'tnan4',0,'Enan4',0,...     % NAND3 / NAND4
+    'amux',0,'tmux',0,'Emux',0,'adem',0,'tdem',0,'Edem',0,...           % MUX / DEMUX 1:4
+    'ase',0,'tse',0,'Ese',0,'aram',0,'tram',0,'Eram',0,...              % state elelment / RAM
+    'aao',0,'tao',0,'Eao',0,'aalu',0,'talu',0,'Ealu',0,...              % arithmetic operation / arithmetic logic unit
+    'Sint',0,'Sic',0,'Sinv4',0,'Snan',0,'S1',0,'Sadd',0,...             % Standby powers for all devices
+    'Sinv1',0,'Sxor',0,'Snan3',0,'Snan4',0,'Smux',0,'Sdem',0,...        % 60
+    'Sse',0,'Sram',0,'Sao',0,'Salu',0,...
+    'volt',0.1,'width',0,'length',0,'Ionle',0,'Iofle',0,'Cadj',1,...
+    'wTran',4,'mgates',3,'Qeff',0,'Idev',0,'Reff',0,'Ceff',0,...
+    'invlen',2,'invwid',5,'nandlen',3,'nandwid',6,'majcrit',1,'wMagn',0,...
+    'metpitch',30e-9,'Lg',12.8e-9,'EOT',1.08e-9);
+materialParameters
+cmosInputs
+for k=1:ndev
+    renameTrans
+    cop.name = saey(k).name;
+    n = cop.name
+    bey(k) = XtorlikeArea(bey(k),cop);
+    bey(k) = XtorlikeDevPerf(bey(k),cop);
+    bey(k) = XtorlikeSimCirc(bey(k),cop);
+    bey(k) = adder1toMany(bey(k),cop);
+    bey(k) = alu(bey(k),cop);
+    bey(k).Qeff = bey(k).Eint./bey(k).volt;
+    bey(k).Reff = bey(k).volt./bey(k).Idev;
+    bey(k).Ceff = bey(k).Qeff./bey(k).volt;
+end
+cey = struct2cell(bey);     %cell array of numbers
+mey = cell2mat(cey);        %simple array of numbers
+dn = aey;
+ticknodes = ['350nm';'250nm';'180nm';'130nm';' 90nm';' 65nm';' 45nm';' 32nm';' 22nm';' 14nm'];
+
